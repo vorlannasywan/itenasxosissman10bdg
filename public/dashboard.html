@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OSIS Panel — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { prefix: 'tw-' }</script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style> body { font-family: 'Inter', system-ui; } </style>
+</head>
+<body class="tw-bg-gray-100 tw-h-screen">
+  <div class="tw-flex tw-h-screen tw-overflow-hidden">
+    <aside id="sidebar-container" class="tw-w-64 tw-bg-blue-800 tw-text-white tw-flex tw-flex-col"></aside>
+    <main class="tw-flex-1 tw-p-8 tw-overflow-y-auto">
+      <header class="tw-flex tw-items-center tw-justify-between tw-mb-6">
+        <div>
+          <h2 id="dashboard-title" class="tw-text-2xl tw-font-bold tw-text-blue-800">Dashboard OSIS</h2>
+          <p class="tw-text-sm tw-text-gray-600">Ringkasan singkat kegiatan dan statistik</p>
+        </div>
+        <div id="user-info-container" class="tw-hidden tw-items-center tw-gap-4"></div>
+      </header>
+      <section class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6">
+        <div class="tw-bg-white tw-rounded-xl tw-p-6 tw-shadow">
+          <p class="tw-text-sm tw-text-gray-500">Total Anggota</p>
+          <p id="total-anggota" class="tw-text-3xl tw-font-bold tw-text-blue-700 tw-mt-2">...</p>
+          <p id="total-anggota-desc" class="tw-text-xs tw-text-gray-400 tw-mt-2">Seluruh anggota yang terdaftar</p>
+        </div>
+        <div class="tw-bg-white tw-rounded-xl tw-p-6 tw-shadow">
+          <p class="tw-text-sm tw-text-gray-500">Proker Aktif</p>
+          <p id="proker-aktif" class="tw-text-3xl tw-font-bold tw-text-blue-700 tw-mt-2">...</p>
+          <p class="tw-text-xs tw-text-gray-400 tw-mt-2">Program kerja yang sedang berlangsung</p>
+        </div>
+        <div id="admin-periode-section" class="tw-hidden tw-bg-white tw-rounded-xl tw-p-6 tw-shadow">
+            <h3 class="tw-text-sm tw-text-gray-500">Pengaturan Periode</h3>
+            <form id="periode-form" class="tw-mt-2">
+                <input type="text" id="tahun-periode" name="tahun_periode" required class="tw-block tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md tw-shadow-sm">
+                <button type="submit" class="tw-w-full tw-mt-2 tw-bg-green-600 tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-green-700">Simpan</button>
+                <p id="periode-message" class="tw-text-xs tw-text-green-600 tw-mt-1 h-3"></p>
+            </form>
+        </div>
+      </section>
+      <section class="tw-mt-8">
+        <h3 class="tw-text-lg tw-font-semibold tw-text-blue-800">Agenda Terdekat</h3>
+        <div class="tw-mt-4 tw-bg-white tw-rounded-xl tw-p-4 tw-shadow">
+          <table class="tw-w-full tw-table-fixed">
+            <thead><tr class="tw-bg-blue-50"><th class="tw-p-3 tw-text-left">Tanggal</th><th class="tw-p-3 tw-text-left">Kegiatan</th><th class="tw-p-3 tw-text-left">Divisi</th><th class="tw-p-3 tw-text-left">Status</th></tr></thead>
+            <tbody id="agenda-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="tw-mt-8">
+        <h3 class="tw-text-lg tw-font-semibold tw-text-blue-800">Berita Terbaru</h3>
+        <div id="berita-list-dashboard" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-4 tw-mt-4"></div>
+      </section>
+    </main>
+  </div>
+  <script src="/js/scripts.js"></script>
+</body>
+</html>

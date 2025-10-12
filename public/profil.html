@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OSIS Panel — Profil OSIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { prefix: 'tw-' }</script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="tw-bg-gray-100 tw-font-sans">
+<div class="tw-flex tw-h-screen tw-overflow-hidden">
+  <aside id="sidebar-container" class="tw-w-64 tw-bg-blue-800 tw-text-white tw-flex tw-flex-col"></aside>
+  
+  <main class="tw-flex-1 tw-p-10 tw-overflow-y-auto">
+    <header id="page-header" class="tw-flex tw-items-center tw-justify-between tw-mb-6">
+      <h2 id="profil-title" class="tw-text-2xl tw-font-bold tw-text-blue-800">Profil Pengurus</h2>
+      <div id="admin-action-container">
+          </div>
+    </header>
+
+    <section class="tw-bg-white tw-rounded-2xl tw-shadow tw-p-8 tw-mb-10 tw-mt-10">
+      <h2 id="leadership-title" class="tw-text-2xl tw-font-semibold tw-text-center tw-mb-6">Ketua & Wakil Ketua</h2>
+      <div id="leadership" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-6 tw-justify-items-center">
+        <p class="tw-col-span-full tw-text-center tw-text-gray-500">Memuat data pimpinan...</p>
+      </div>
+    </section>
+
+    <section class="tw-bg-white tw-rounded-2xl tw-shadow tw-p-8">
+      <h2 id="staff-title" class="tw-text-2xl tw-font-semibold tw-mb-6">Anggota</h2>
+      <div id="staff" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6 tw-justify-items-center">
+        <p class="tw-col-span-full tw-text-center tw-text-gray-500">Memuat data anggota...</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+  <div id="formPopup" class="tw-hidden tw-fixed tw-inset-0 tw-bg-black/50 tw-flex tw-items-center tw-justify-center tw-z-50">
+    <div class="tw-bg-white tw-rounded-2xl tw-p-6 tw-w-96 tw-shadow-lg tw-relative">
+      <h3 class="tw-text-xl tw-font-semibold tw-mb-4" id="formTitle">Form Anggota</h3>
+      <form id="osisForm">
+        <input type="hidden" id="memberId">
+        <input type="text" id="nama" placeholder="Nama" required class="tw-w-full tw-p-2 tw-border tw-rounded tw-mb-3">
+        <input type="text" id="nisn" placeholder="NISN" required class="tw-w-full tw-p-2 tw-border tw-rounded tw-mb-3">
+        <input type="text" id="jabatan" placeholder="Jabatan" required class="tw-w-full tw-p-2 tw-border tw-rounded tw-mb-3">
+        <label class="tw-text-sm">Foto (Kosongkan jika tidak ingin diubah)</label>
+        <input type="file" id="url_foto_baru" class="tw-w-full tw-p-2 tw-text-sm tw-border tw-rounded tw-mb-3">
+        <div class="tw-flex tw-justify-end tw-gap-3">
+          <button type="button" id="cancel-btn" class="tw-bg-gray-400 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-gray-500">Batal</button>
+          <button type="submit" class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded hover:tw-bg-blue-700">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="/js/scripts.js"></script>
+</body>
+</html>
