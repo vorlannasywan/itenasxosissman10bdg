@@ -362,26 +362,52 @@ async function loadProfilPage() {
     }
 }
 
+// Di dalam file: public/js/scripts.js
+
 function renderProfil(members, isMpk = false) {
     const leadershipId = isMpk ? 'leadership-mpk' : 'leadership';
     const staffId = isMpk ? 'staff-mpk' : 'staff';
     const leadershipEl = document.getElementById(leadershipId);
     const staffEl = document.getElementById(staffId);
     if(!leadershipEl || !staffEl) return;
+
     leadershipEl.innerHTML = '';
     staffEl.innerHTML = '';
+    
+    // PERBAIKAN: Logika sorting diubah total untuk hierarki baru
     members.sort((a, b) => {
-        const getPeringkat = (jabatan) => (jabatan.toLowerCase().includes('ketua') ? 1 : (jabatan.toLowerCase().includes('wakil') ? 2 : 3));
-        return getPeringkat(a.jabatan) - getPeringkat(b.jabatan) || a.jabatan.localeCompare(b.jabatan);
+        const getPeringkat = (jabatan) => {
+            const jbtn = jabatan.toLowerCase();
+            if (jbtn.includes('ketua osis umum')) return 1;
+            if (jbtn.includes('ketua osis 1')) return 2;
+            if (jbtn.includes('ketua osis 2')) return 3;
+            // Jabatan pimpinan lain bisa ditambahkan di sini
+            if (jbtn.includes('ketua mpk')) return 4;
+            if (jbtn.includes('wakil ketua')) return 5;
+            return 99; // Peringkat untuk anggota biasa
+        };
+
+        const peringkatA = getPeringkat(a.jabatan);
+        const peringkatB = getPeringkat(b.jabatan);
+        
+        // Urutkan berdasarkan peringkat, lalu berdasarkan nama jika peringkat sama
+        return peringkatA - peringkatB || a.nama.localeCompare(b.nama);
     });
+    
     members.forEach(member => {
         const card = createMemberCard(member, isLoggedIn());
-        if (member.jabatan.toLowerCase().includes('ketua')) {
+        const peringkat = member.jabatan.toLowerCase();
+
+        // PERBAIKAN: Kondisi untuk masuk ke bagian pimpinan
+        if (peringkat.includes('ketua osis umum') || peringkat.includes('ketua osis 1') || peringkat.includes('ketua osis 2') || peringkat.includes('ketua mpk') || peringkat.includes('wakil')) {
             leadershipEl.innerHTML += card;
         } else {
             staffEl.innerHTML += card;
         }
     });
+
+    if(leadershipEl.innerHTML === '') leadershipEl.innerHTML = `<p class="tw-col-span-full tw-text-center tw-text-gray-500">Data pimpinan tidak ditemukan.</p>`;
+    if(staffEl.innerHTML === '') staffEl.innerHTML = `<p class="tw-col-span-full tw-text-center tw-text-gray-500">Data anggota tidak ditemukan.</p>`;
 }
 
 // ===================================
@@ -546,7 +572,7 @@ const prokerFormHTML = `
     <input type="hidden" name="prokerId">
     <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
         <input name="nama" required class="tw-border tw-rounded-md tw-px-3 tw-py-2" placeholder="Judul Proker">
-        <select name="divisi" class="tw-border tw-rounded-md tw-px-3 tw-py-2"><option>Olahraga</option><option>Seni</option><option>Pengurus</option></select>
+        <select name="divisi" class="tw-border tw-rounded-md tw-px-3 tw-py-2"><option>Keagamaan</option><option>Upacara</option><option>MPLS</option><option>Kebersihan</option><option>Open Recruitment OSIS</option><option>Kewirausahaan</option><option>Olahraga</option><option>Seni</option><option>Poster Hari Besar, dan TIK</option><option>Berbahasa</option></select>
         <textarea name="deskripsi" required class="tw-border tw-rounded-md tw-px-3 tw-py-2 md:tw-col-span-2" rows="4" placeholder="Deskripsi..."></textarea>
         <input name="tanggal_mulai" type="date" required class="tw-border tw-rounded-md tw-px-3 tw-py-2">
         <select name="status" class="tw-border tw-rounded-md tw-px-3 tw-py-2"><option>Direncanakan</option><option>Berlangsung</option><option>Selesai</option></select>
