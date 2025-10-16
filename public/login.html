@@ -5,32 +5,66 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>OSIS Panel — Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { prefix: 'tw-' }</script>
+  <script>
+    tailwind.config = { prefix: 'tw-' }
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style> body { font-family: 'Inter', system-ui; } </style>
 </head>
-<body class="tw-bg-gray-100 tw-flex tw-items-center tw-justify-center tw-h-screen">
-  <div class="tw-w-full tw-max-w-md tw-bg-white tw-rounded-lg tw-shadow-lg tw-p-8">
-    <div class="tw-text-center">
-      <h1 class="tw-text-2xl tw-font-bold tw-text-blue-800">OSIS/MPK Panel</h1>
-      <p class="tw-text-gray-600">SMAN 10 Bandung</p>
+<body 
+  class="tw-flex tw-items-center tw-justify-center tw-h-screen tw-overflow-hidden tw-bg-gray-100 md:tw-bg-[url('/images/bg-login.png')] md:tw-bg-cover md:tw-bg-center md:tw-bg-no-repeat"
+>
+
+  <!-- Container utama -->
+  <div class="tw-flex tw-flex-col md:tw-flex-row tw-bg-white tw-bg-opacity-95 tw-rounded-lg tw-shadow-2xl tw-overflow-hidden tw-w-[90%] md:tw-w-[800px] tw-h-auto md:tw-h-[450px]">
+
+    <!-- Kolom kiri (gambar tambahan, hanya muncul di layar ≥ md) -->
+    <div class="tw-hidden md:tw-flex tw-w-1/2 tw-items-center tw-justify-center tw-bg-gray-100">
+      <img src="/images/Left-Container.png" alt="Login Illustration" class="tw-w-full tw-object-contain">
     </div>
-    <form id="login-form" class="tw-mt-6">
-      <div class="tw-mb-4">
-        <label for="username" class="tw-block tw-text-sm tw-font-medium tw-text-gray-700">Username</label>
-        <input type="text" id="username" required class="tw-mt-1 tw-block tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md tw-shadow-sm focus:tw-ring-blue-500 focus:tw-border-blue-500">
+
+    <!-- Kolom kanan (form login) -->
+    <div class="tw-w-full md:tw-w-1/2 tw-flex tw-items-center tw-justify-center tw-p-6 md:tw-p-8">
+      <div class="tw-w-full tw-max-w-sm">
+        <div class="tw-text-center">
+          <h1 class="tw-text-2xl tw-font-bold tw-text-[#1C768F]">OSIS/MPK Panel</h1>
+          <p class="tw-text-gray-600">SMAN 10 Bandung</p>
+        </div>
+
+        <form id="login-form" class="tw-mt-6">
+          <div class="tw-mb-4">
+            <label for="username" class="tw-block tw-text-sm tw-font-medium tw-text-gray-700">Username</label>
+            <input 
+              type="text" id="username" required 
+              class="tw-mt-1 tw-block tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md tw-shadow-sm focus:tw-ring-[#124351] focus:tw-border-[#124351]">
+          </div>
+
+          <div class="tw-mb-6">
+            <label for="password" class="tw-block tw-text-sm tw-font-medium tw-text-gray-700">Password</label>
+            <input 
+              type="password" id="password" required 
+              class="tw-mt-1 tw-block tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md tw-shadow-sm focus:tw-ring-[#124351] focus:tw-border-[#124351]">
+          </div>
+
+          <button 
+            type="submit" 
+            class="tw-w-full tw-bg-[#1C768F] tw-text-white tw-py-2 tw-px-4 tw-rounded-md hover:tw-bg-[#124351]">
+            Login
+          </button>
+
+          <p id="error-message" class="tw-text-red-500 tw-text-sm tw-text-center tw-mt-4 h-4"></p>
+        </form>
+
+        <div class="tw-text-center tw-mt-4">
+          <a href="dashboard.html" class="tw-text-sm tw-text-[#1C768F] hover:tw-underline">
+            &larr; Kembali ke Dashboard Publik
+          </a>
+        </div>
       </div>
-      <div class="tw-mb-6">
-        <label for="password" class="tw-block tw-text-sm tw-font-medium tw-text-gray-700">Password</label>
-        <input type="password" id="password" required class="tw-mt-1 tw-block tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md tw-shadow-sm focus:tw-ring-blue-500 focus:tw-border-blue-500">
-      </div>
-      <button type="submit" class="tw-w-full tw-bg-blue-800 tw-text-white tw-py-2 tw-px-4 tw-rounded-md hover:tw-bg-blue-700">Login</button>
-      <p id="error-message" class="tw-text-red-500 tw-text-sm tw-text-center tw-mt-4 h-4"></p>
-    </form>
-    <div class="tw-text-center tw-mt-4">
-       <a href="dashboard.html" class="tw-text-sm tw-text-blue-600 hover:tw-underline">&larr; Kembali ke Dashboard Publik</a>
     </div>
+
   </div>
+
   <script src="/js/scripts.js"></script>
 </body>
 </html>

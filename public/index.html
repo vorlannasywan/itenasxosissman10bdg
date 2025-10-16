@@ -1,33 +1,130 @@
 <!doctype html>
 <html lang="id">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Program Kerja OSIS SMAN 10</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { prefix: 'tw-' }</script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Inter', system-ui; } </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Portal OSIS SMAN 10 Bandung</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { prefix: 'tw-' }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', system-ui; }
+    .font-averia {
+    font-family: 'Averia Serif Libre', serif;}
+  </style>
 </head>
-<body class="tw-bg-gray-100">
+<body class="tw-bg-gray-100 tw-text-gray-800">
+  <!-- Header -->
+  <header class="tw-bg-white tw-shadow-sm tw-fixed tw-top-0 tw-w-full tw-z-50">
+    <div class="tw-container tw-mx-auto tw-flex tw-justify-between tw-items-center tw-px-6 tw-py-4">
+      <div class="tw-flex tw-items-center tw-space-x-3">
+        <img src="/images/logo sman.svg" alt="Logo SMAN 10" class="tw-w-10 tw-h-10 tw-rounded-full tw-object-cover">
+        <h1 class="tw-text-xl tw-font-bold tw-text-[#1C768F]">SMAN 10 BANDUNG</h1>
+      </div>
+      <a href="login.html" class="tw-bg-[#1C768F] tw-text-white tw-px-8 tw-py-2 tw-rounded-full hover:tw-bg-[#124351]">Masuk</a>
+    </div>
+  </header>
 
-    <header class="tw-bg-white tw-shadow-md">
-        <div class="tw-container tw-mx-auto tw-px-6 tw-py-4 tw-flex tw-justify-between tw-items-center">
-            <h1 class="tw-text-xl tw-font-bold tw-text-blue-800">OSIS SMAN 10 Bandung</h1>
-            <nav class="tw-space-x-6 tw-items-center">
-                <a href="dashboard.html" class="tw-text-gray-600 hover:tw-text-blue-600">Bagan OSIS</a>
-                <a href="login.html" class="tw-bg-blue-800 tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-blue-700">Login Admin</a>
-            </nav>
+  <!-- Hero Section -->
+<section class="tw-relative tw-h-[90vh] tw-flex tw-items-center tw-justify-center tw-bg-gray-900 tw-mt-[64px]">
+  <img src="/images/foto header sman10.svg" alt="Sekolah" class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-opacity-70">
+  <div class="tw-relative tw-text-center tw-text-white tw-max-w-2xl tw-px-4">
+    <img src="/images/logo sman putih.png" class="tw-w-30 tw-h-30 tw-mx-auto tw-mb-4" alt="Logo SMAN 10 Putih">
+
+    <!-- Terapkan font Averia di teks -->
+    <h2 class="tw-text-3xl md:tw-text-3xl  tw-mb-8 font-averia">Selamat Datang di Portal</h2>
+    <h1 class="tw-text-2xl md:tw-text-5xl  tw-mb-4 font-averia">OSIS SMAN 10 BANDUNG</h1>
+    <p class="tw-text-gray-200 tw-mb-12 font-averia">Ruang digital untuk berorganisasi, berinovasi, dan berkontribusi bagi sekolah kita.</p>
+
+    <a href="dashboard.html" class="tw-bg-white tw-text-black tw-font-semibold tw-px-6 tw-py-3 tw-rounded-full hover:tw-bg-gray-200">Masuk ke portal OSIS</a>
+  </div>
+</section>
+
+
+  <!-- Section 1: Visi dan Tujuan -->
+  <section class="tw-py-16 tw-bg-white">
+    <div class="tw-container tw-mx-auto tw-text-center tw-space-y-8">
+      <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-8">
+        <div class="tw-bg-white tw-rounded-2xl tw-drop-shadow-lg tw-p-6">
+          <img src="/images/graduation-cap.svg" alt="Berinovasi" class="tw-rounded-xl tw-mb-4 tw-h-40 tw-w-full">
+          <h3 class="tw-font-bold tw-text-lg tw-mb-2">Wadah Siswa Berkreasi</h3>
+          <p>OSIS menjadi tempat siswa mengembangkan ide dan bakat melalui kegiatan positif di sekolah.</p>
         </div>
-    </header>
 
-    <main class="tw-container tw-mx-auto tw-p-8">
-        <h2 class="tw-text-2xl tw-font-bold tw-text-blue-800 tw-mb-6">Program Kerja</h2>
-        <section id="proker-list" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-6">
-            <p class="tw-col-span-full tw-text-center tw-text-gray-500">Memuat program kerja...</p>
-        </section>
-    </main>
+        <div class="tw-bg-white tw-rounded-2xl tw-drop-shadow-lg tw-p-6">
+          <img src="/images/handshake.svg" alt="Komunikasi" class="tw-rounded-xl tw-mb-4 tw-h-40 tw-w-full">
+          <h3 class="tw-font-bold tw-text-lg tw-mb-2">Jembatan Komunikasi</h3>
+          <p>OSIS menyampaikan aspirasi dan gagasan bersama, demi perkembangan siswa dan sekolah.</p>
+        </div>
 
-    <script src="/js/scripts.js"></script>
+        <div class="tw-bg-white tw-rounded-2xl tw-drop-shadow-lg tw-p-6">
+          <img src="/images/badge icon.svg" alt="Kepemimpinan" class="tw-rounded-xl tw-mb-4 tw-h-40 tw-w-full">
+          <h3 class="tw-font-bold tw-text-lg tw-mb-2">Pembentuk Kepemimpinan</h3>
+          <p>OSIS melatih jiwa kepemimpinan melalui kerja sama dan tanggung jawab.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- Section: Program Kerja -->
+<section id="proker-section" class="tw-py-16 tw-bg-gray-50">
+  <div class="tw-container tw-mx-auto tw-text-center">
+    <h2 class="tw-text-2xl tw-font-bold tw-text-[#1C768F] tw-mb-8">Program Kerja OSIS</h2>
+    <div id="prokerList" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-6"></div>
+    <a href="proker.html" class="tw-inline-block tw-mt-8 tw-border tw-border-[#1C768F] tw-text-[#1C768F] tw-px-6 tw-py-2 tw-rounded-md hover:tw-bg-[#1C768F] hover:tw-text-white">
+      Telusuri Program Kerja
+    </a>
+  </div>
+</section>
+
+<!-- Section: Berita -->
+<section id="berita-section" class="tw-py-16 tw-bg-white">
+  <div class="tw-container tw-mx-auto tw-text-center">
+    <h2 class="tw-text-2xl tw-font-bold tw-text-[#1C768F] tw-mb-8">Berita Terbaru</h2>
+    <div id="berita-list" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-6"></div>
+    <a href="berita.html" class="tw-inline-block tw-mt-8 tw-border tw-border-[#1C768F] tw-text-[#1C768F] tw-px-6 tw-py-2 tw-rounded-md hover:tw-bg-[#1C768F] hover:tw-text-white">
+      Lihat Semua Berita
+    </a>
+  </div>
+</section>
+
+
+  <!-- Section 3: Voting -->
+  <section class="tw-py-16 tw-bg-white tw-text-center">
+    <h2 class="tw-text-2xl tw-font-bold tw-text-[#1C768F] tw-mb-6">Pemilihan OSIS Kini Lebih Mudah</h2>
+    <p class="tw-max-w-2xl tw-mx-auto tw-text-gray-600 tw-mb-8">
+      Pilih calon ketua OSIS favoritmu secara online dan aman melalui fitur E-Voting.
+      Setiap suara sangat berarti untuk masa depan organisasi siswa kita.
+    </p>
+    <a href="voting.html" class="tw-bg-[#1C768F] tw-text-white tw-px-6 tw-py-3 tw-rounded-md hover:tw-bg-blue-700">Mulai Voting</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="tw-bg-orange-300 tw-py-10 tw-mt-12 tw-text-center md:tw-text-left">
+    <div class="tw-container tw-mx-auto tw-grid md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-8 tw-px-6">
+      <div>
+        <h3 class="tw-font-bold tw-text-lg tw-text-gray-800">SMAN 10 BANDUNG</h3>
+        <p class="tw-text-sm tw-text-gray-700 tw-mt-2">Ruang digital untuk berorganisasi, berinovasi, dan berkontribusi bagi sekolah kita.</p>
+      </div>
+      <div>
+        <h4 class="tw-font-semibold tw-text-gray-800 tw-mb-2">Informasi</h4>
+        <ul class="tw-space-y-1">
+          <li><a href="#" class="hover:tw-text-[#1C768F]">Home</a></li>
+          <li><a href="#" class="hover:tw-text-[#1C768F]">About</a></li>
+          <li><a href="#" class="hover:tw-text-[#1C768F]">Features</a></li>
+          <li><a href="#" class="hover:tw-text-[#1C768F]">Discover</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tw-text-center tw-border-t tw-border-gray-300 tw-mt-8 tw-pt-4 tw-text-sm tw-text-gray-600">
+      <p>Privacy Policy | Terms of Service</p>
+      <p>© 2025 OSIS SMAN 10 Bandung. All Rights Reserved.</p>
+    </div>
+  </footer>
 </body>
+<script src="/js/scripts.js"></script>
+
 </html>

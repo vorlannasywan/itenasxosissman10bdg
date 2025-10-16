@@ -4,59 +4,290 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>OSIS Panel — Dashboard</title>
+
+  <!-- Tailwind (prefix tw-) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { prefix: 'tw-' }</script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>  
+
+  <!-- Fonts / libs -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <style> body { font-family: 'Inter', system-ui; } </style>
+
+  <style>
+    body { font-family: 'Inter', system-ui; }
+
+    /* Sidebar base + transisi */
+    #sidebar-container {
+      transition: transform 0.32s cubic-bezier(.2,.9,.2,1), opacity 0.28s ease;
+      will-change: transform, opacity;
+    }
+
+    /* Saat mobile - disembunyikan dengan transform & opacity */
+    .hidden-mobile {
+      transform: translateX(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Overlay transisi */
+    #overlay {
+      transition: opacity 0.25s ease;
+      will-change: opacity;
+    }
+    /* overlay hidden helper (keamanan pointer) */
+    .overlay-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .overlay-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Sidebar desktop force-visible (reset CSS fallback) */
+    @media (min-width: 768px) {
+      #sidebar-container {
+        transform: none !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+      #overlay { display: none !important; }
+    }
+
+    /* Active link style fallback for non-js */
+    .nav-active {
+      background-color: #145c6d;
+    }
+  </style>
 </head>
 <body class="tw-bg-gray-100 tw-h-screen">
+
   <div class="tw-flex tw-h-screen tw-overflow-hidden">
-    <aside id="sidebar-container" class="tw-w-64 tw-bg-blue-800 tw-text-white tw-flex tw-flex-col"></aside>
-    <main class="tw-flex-1 tw-p-8 tw-overflow-y-auto">
-      <header class="tw-flex tw-items-center tw-justify-between tw-mb-6">
-        <div>
-          <h2 id="dashboard-title" class="tw-text-2xl tw-font-bold tw-text-blue-800">Dashboard OSIS</h2>
-          <p class="tw-text-sm tw-text-gray-600">Ringkasan singkat kegiatan dan statistik</p>
+
+    <!-- OVERLAY (mobile) -->
+    <div id="overlay" class="tw-fixed tw-inset-0 tw-z-40 overlay-hidden tw-bg-black/50"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar-container"
+      class="tw-fixed md:tw-static tw-z-50 tw-top-0 tw-left-0 tw-h-full tw-w-64 tw-bg-[#1C768F] tw-text-white tw-flex tw-flex-col hidden-mobile md:tw-transform-none"
+      aria-label="Sidebar utama">
+
+      <!-- Sidebar header (mobile only) -->
+      <div class="tw-flex tw-items-center tw-justify-between tw-p-4 md:tw-hidden tw-border-b tw-border-white/20">
+        <h2 class="tw-text-lg tw-font-semibold">Menu</h2>
+        <button id="close-sidebar" aria-label="Tutup menu" class="tw-text-white tw-text-3xl tw-leading-none">
+          <!-- SVG close -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-7 tw-h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- NAV (links di-generate dengan JS) -->
+      <nav id="sidebar-nav" class="tw-flex-1 tw-p-6 tw-space-y-2" role="navigation" aria-label="Navigasi utama">
+        <!-- Links akan di-insert di sini -->
+      </nav>
+
+      <!-- Footer kecil di sidebar -->
+      <div class="tw-p-4 tw-text-xs tw-text-white/80 tw-border-t tw-border-white/10">
+        <div class="tw-font-medium">OSIS SMAN 10</div>
+        <div class="tw-mt-1">v1.0 — dashboard</div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="tw-flex-1 tw-flex tw-flex-col tw-overflow-y-auto tw-p-6 md:tw-p-8 tw-w-full" id="main-content">
+      
+      <!-- HEADER -->
+      <header class="tw-flex tw-items-center tw-justify-between tw-mb-6 tw-gap-4">
+        <div class="tw-flex tw-items-center tw-gap-4">
+          <!-- Hamburger (mobile only) -->
+          <button id="menu-toggle" aria-label="Buka menu" class="md:tw-hidden tw-text-[#1C768F] tw-flex tw-items-center tw-justify-center tw-rounded-md tw-p-1 focus:tw-outline-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="tw-w-8 tw-h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+
+          <div>
+            <h2 id="dashboard-title" class="tw-text-2xl tw-font-bold tw-text-[#1C768F]">Dashboard OSIS</h2>
+            <p class="tw-text-sm tw-text-gray-600">Ringkasan singkat kegiatan dan statistik</p>
+          </div>
         </div>
-        <div id="user-info-container" class="tw-hidden tw-items-center tw-gap-4"></div>
+
+        <!-- user area (hidden on small) -->
+        <div id="user-info-container" class="tw-hidden md:tw-flex tw-items-center tw-gap-4">
+          <div class="tw-text-sm tw-text-gray-700">Halo, <strong>Dika</strong></div>
+          <button class="tw-bg-[#1C768F] tw-text-white tw-px-3 tw-py-1 tw-rounded">Logout</button>
+        </div>
       </header>
+
+      <!-- Cards -->
       <section class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6">
         <div class="tw-bg-white tw-rounded-xl tw-p-6 tw-shadow">
           <p class="tw-text-sm tw-text-gray-500">Total Anggota</p>
-          <p id="total-anggota" class="tw-text-3xl tw-font-bold tw-text-blue-700 tw-mt-2">...</p>
-          <p id="total-anggota-desc" class="tw-text-xs tw-text-gray-400 tw-mt-2">Seluruh anggota yang terdaftar</p>
+          <p id="total-anggota" class="tw-text-3xl tw-font-bold tw-text-[#1C768F] tw-mt-2">...</p>
+          <p class="tw-text-xs tw-text-gray-400 tw-mt-2">Seluruh anggota yang terdaftar</p>
         </div>
+
         <div class="tw-bg-white tw-rounded-xl tw-p-6 tw-shadow">
           <p class="tw-text-sm tw-text-gray-500">Proker Aktif</p>
-          <p id="proker-aktif" class="tw-text-3xl tw-font-bold tw-text-blue-700 tw-mt-2">...</p>
+          <p id="proker-aktif" class="tw-text-3xl tw-font-bold tw-text-[#1C768F] tw-mt-2">...</p>
           <p class="tw-text-xs tw-text-gray-400 tw-mt-2">Program kerja yang sedang berlangsung</p>
         </div>
+
         <div id="admin-periode-section" class="tw-hidden tw-bg-white tw-rounded-xl tw-p-6 tw-shadow">
-            <h3 class="tw-text-sm tw-text-gray-500">Pengaturan Periode</h3>
-            <form id="periode-form" class="tw-mt-2">
-                <input type="text" id="tahun-periode" name="tahun_periode" required class="tw-block tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md tw-shadow-sm">
-                <button type="submit" class="tw-w-full tw-mt-2 tw-bg-green-600 tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-green-700">Simpan</button>
-                <p id="periode-message" class="tw-text-xs tw-text-green-600 tw-mt-1 h-3"></p>
-            </form>
+          <h3 class="tw-text-sm tw-text-gray-500">Pengaturan Periode</h3>
+          <form id="periode-form" class="tw-mt-2">
+            <input type="text" id="tahun-periode" name="tahun_periode" required
+              class="tw-block tw-w-full tw-px-3 tw-py-2 tw-border tw-border-gray-300 tw-rounded-md tw-shadow-sm">
+            <button type="submit"
+              class="tw-w-full tw-mt-2 tw-bg-green-600 tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-green-700">
+              Simpan
+            </button>
+            <p id="periode-message" class="tw-text-xs tw-text-green-600 tw-mt-1 h-3"></p>
+          </form>
         </div>
       </section>
+
+      <!-- Agenda -->
       <section class="tw-mt-8">
-        <h3 class="tw-text-lg tw-font-semibold tw-text-blue-800">Agenda Terdekat</h3>
-        <div class="tw-mt-4 tw-bg-white tw-rounded-xl tw-p-4 tw-shadow">
-          <table class="tw-w-full tw-table-fixed">
-            <thead><tr class="tw-bg-blue-50"><th class="tw-p-3 tw-text-left">Tanggal</th><th class="tw-p-3 tw-text-left">Kegiatan</th><th class="tw-p-3 tw-text-left">Divisi</th><th class="tw-p-3 tw-text-left">Status</th></tr></thead>
+        <h3 class="tw-text-lg tw-font-semibold tw-text-[#1C768F]">Agenda Terdekat</h3>
+        <div class="tw-mt-4 tw-bg-white tw-rounded-xl tw-p-4 tw-shadow tw-overflow-x-auto">
+          <table class="tw-w-full tw-min-w-[600px]">
+            <thead>
+              <tr class="tw-bg-blue-50">
+                <th class="tw-p-3 tw-text-left">Tanggal</th>
+                <th class="tw-p-3 tw-text-left">Kegiatan</th>
+                <th class="tw-p-3 tw-text-left">Divisi</th>
+                <th class="tw-p-3 tw-text-left">Status</th>
+              </tr>
+            </thead>
             <tbody id="agenda-tbody"></tbody>
           </table>
         </div>
       </section>
+
+      <!-- Berita -->
       <section class="tw-mt-8">
-        <h3 class="tw-text-lg tw-font-semibold tw-text-blue-800">Berita Terbaru</h3>
+        <h3 class="tw-text-lg tw-font-semibold tw-text-[#1C768F]">Berita Terbaru</h3>
         <div id="berita-list-dashboard" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-4 tw-mt-4"></div>
       </section>
     </main>
   </div>
-  <script src="/js/scripts.js"></script>
+
+  <script>
+    /***********************
+     * DYNAMIC SIDEBAR + UX
+     ***********************/
+    const sidebar = document.getElementById("sidebar-container");
+    const menuBtn = document.getElementById("menu-toggle");
+    const closeBtn = document.getElementById("close-sidebar");
+    const overlay = document.getElementById("overlay");
+    const sidebarNav = document.getElementById("sidebar-nav");
+
+    // contoh menu (bisa diganti atau digenerate dari backend)
+    const menuItems = [
+      { title: "Dashboard", icon: "🏠", href: "#", id: "dashboard" },
+      { title: "Agenda", icon: "📅", href: "#agenda", id: "agenda" },
+      { title: "Berita", icon: "📰", href: "#berita", id: "berita" },
+      { title: "Anggota", icon: "👥", href: "#anggota", id: "anggota" },
+    ];
+
+    // render menu items
+    function renderMenu() {
+      sidebarNav.innerHTML = "";
+      menuItems.forEach(item => {
+        const a = document.createElement("a");
+        a.href = item.href;
+        a.className = "tw-block tw-font-medium tw-text-white hover:tw-bg-[#145c6d] tw-rounded tw-px-3 tw-py-2";
+        a.dataset.menuId = item.id;
+        a.innerHTML = `<span class="tw-mr-2">${item.icon}</span> <span>${item.title}</span>`;
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          setActiveMenu(item.id);
+          // jika di mobile, tutup sidebar setelah pilih
+          if (window.innerWidth < 768) closeSidebar();
+          // contoh: navigasi atau load konten
+          // loadSection(item.id);
+        });
+        sidebarNav.appendChild(a);
+      });
+    }
+
+    // set active class
+    function setActiveMenu(id) {
+      document.querySelectorAll('#sidebar-nav a').forEach(el => el.classList.remove('nav-active'));
+      const target = document.querySelector(`#sidebar-nav a[data-menu-id="${id}"]`);
+      if (target) target.classList.add('nav-active');
+    }
+
+    // buka/ tutup sidebar + overlay
+    function openSidebar() {
+      sidebar.classList.remove("hidden-mobile");
+      overlay.classList.remove("overlay-hidden");
+      overlay.classList.add("overlay-visible");
+      // focus trap: fokus ke tombol close agar keyboard users bisa menutup
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function closeSidebar() {
+      sidebar.classList.add("hidden-mobile");
+      overlay.classList.remove("overlay-visible");
+      overlay.classList.add("overlay-hidden");
+    }
+
+    // event listeners
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openSidebar();
+    });
+    if (closeBtn) closeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeSidebar();
+    });
+    overlay.addEventListener("click", closeSidebar);
+
+    // klik di luar sidebar hanya untuk mobile
+    document.addEventListener("click", (e) => {
+      if (window.innerWidth < 768) {
+        // jika klik di luar sidebar dan bukan tombol menu, tutup
+        if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+          closeSidebar();
+        }
+      }
+    });
+
+    // reset state saat resize (stabilkan behavior)
+    function handleResize() {
+      if (window.innerWidth >= 768) {
+        // di desktop: pastikan sidebar terlihat dan overlay tersembunyi
+        sidebar.classList.remove("hidden-mobile");
+        overlay.classList.remove("overlay-visible");
+        overlay.classList.add("overlay-hidden");
+      } else {
+        // mobile: sembunyikan sidebar by default
+        sidebar.classList.add("hidden-mobile");
+        overlay.classList.remove("overlay-visible");
+        overlay.classList.add("overlay-hidden");
+      }
+    }
+    window.addEventListener("resize", handleResize);
+
+    // inisialisasi awal
+    (function init() {
+      renderMenu();
+      // set default active
+      setActiveMenu('dashboard');
+      // set initial responsive state
+      handleResize();
+      // contoh isi statis (boleh diganti fetch API)
+      document.getElementById('total-anggota').textContent = '—';
+      document.getElementById('proker-aktif').textContent = '—';
+      // (opsional) fetch data real dari API:
+      // fetch('/api/dashboard-stats').then(r=>r.json()).then(d=>{ ... })
+    })();
+  </script>
+
+  <!-- opsional: script utama aplikasi -->
+  <script src="/js/scripts.js" defer></script>
 </body>
 </html>
