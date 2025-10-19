@@ -14,6 +14,8 @@ app.use(cors()); // Mengizinkan Cross-Origin Resource Sharing
 app.use(express.json()); // Mem-parsing body request JSON
 app.use(express.urlencoded({ extended: true })); // Mem-parsing body request URL-encoded
 app.use(express.static(path.join(__dirname, 'public'))); // Menyajikan file frontend statis dari folder 'public'
+app.use(express.static('public'));
+
 
 // Mendaftarkan semua Rute API
 app.use('/api/auth', require('./routes/auth'));

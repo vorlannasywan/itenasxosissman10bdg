@@ -5,15 +5,20 @@
  * Bertindak sebagai "router" frontend untuk menjalankan fungsi yang sesuai dengan halaman yang dibuka.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    const path = window.location.pathname.split('/').pop() || 'dashboard.html';
+    // --- PERBAIKAN LOGIKA PATH ---
+    let path = window.location.pathname.split('/').pop();
+    if (path === '' || path === 'index.html') {
+        path = 'index.html'; // Set default ke index.html
+    }
     
-    // Render sidebar dinamis di semua halaman kecuali login
-    if (path !== 'login.html') {
+    // Render sidebar dinamis di semua halaman kecuali login dan index
+    if (path !== 'login.html' && path !== 'index.html') {
         renderSidebar(path);
     }
 
     // Menjalankan fungsi spesifik berdasarkan halaman
     switch (path) {
+        case 'index.html': loadIndexPage(); break; // <-- INI YANG DIPERBAIKI
         case 'dashboard.html': loadDashboardPage(); break;
         case 'proker.html': loadProkerPage(); break;
         case 'proker-detail.html': loadProkerDetailPage(); break;
@@ -23,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         case 'login.html': setupLoginForm(); break;
     }
 });
+
 
 // ===================================
 // UTILITIES & AUTHENTICATION
@@ -59,6 +65,8 @@ async function apiFetch(endpoint, options = {}) {
     }
 }
 
+
+
 function logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
@@ -83,13 +91,25 @@ async function renderSidebar(currentPage) {
     ];
 
     const generateNavLinks = () => navLinks.map(link => {
-        const isActive = currentPage === link.href;
-        return `<a href="${link.href}" class="tw-flex tw-items-center tw-gap-3 tw-py-2 tw-px-3 tw-rounded-md tw-mb-1 ${isActive ? 'tw-bg-blue-700' : 'hover:tw-bg-blue-700'}">${link.icon} ${link.text}</a>`;
+        
+        let isActive = currentPage === link.href;
+
+        // Atur Proker sebagai aktif jika kita di halaman proker-detail
+        if (link.href === 'proker.html' && currentPage === 'proker-detail.html') {
+            isActive = true;
+        }
+        
+        // Atur Berita sebagai aktif jika kita di halaman berita-detail
+        if (link.href === 'berita.html' && currentPage === 'berita-detail.html') {
+            isActive = true;
+        }
+
+        return `<a href="${link.href}" class="tw-flex tw-items-center tw-gap-3 tw-py-2 tw-px-3 tw-rounded-md tw-mb-1 ${isActive ? 'tw-bg-[#124351]' : 'hover:tw-bg-[#124351]'}">${link.icon} ${link.text}</a>`;
     }).join('');
 
     const authButtonHTML = isLoggedIn()
         ? `<button onclick="logout()" class="tw-w-full tw-bg-red-600 tw-py-2 tw-rounded-md hover:tw-bg-red-500">Logout</button>`
-        : `<a href="login.html" class="tw-w-full tw-block tw-text-center tw-bg-blue-600 tw-py-2 tw-rounded-md hover:tw-bg-blue-500">Login</a>`;
+        : `<a href="login.html" class="tw-w-full tw-block tw-text-center tw-bg-[#124351] tw-py-2 tw-rounded-md hover:tw-bg-[#0C2830]">Login</a>`;
 
     let periode = '...';
     try {
@@ -102,11 +122,11 @@ async function renderSidebar(currentPage) {
     } catch(e) { console.error("Gagal memuat periode"); }
 
     container.innerHTML = `
-      <div class="tw-py-6 tw-px-5 tw-border-b tw-border-blue-700">
+      <div class="tw-py-6 tw-px-5 tw-border-b tw-border-[#124351]">
         <div><h1 class="tw-text-xl tw-font-bold">${roleText} Panel</h1><p class="tw-text-xs tw-opacity-80">SMAN 10 Bandung</p></div>
       </div>
       <nav class="tw-px-3 tw-pt-4 tw-flex-1">${generateNavLinks()}</nav>
-      <div class="tw-px-4 tw-py-4 tw-border-t tw-border-blue-700">
+      <div class="tw-px-4 tw-py-4 tw-border-t tw-border-[#124351]">
         <div class="tw-mb-4"><p class="tw-text-xs tw-opacity-80">Periode aktif</p><p class="tw-text-sm tw-font-semibold">${periode}</p></div>
         ${authButtonHTML}
       </div>`;
@@ -136,10 +156,63 @@ function updateDynamicText() {
 // PAGE LOADERS
 // ===================================
 
+// --- FUNGSI BARU UNTUK INDEX.HTML ---
+async function loadIndexPage() {
+    try {
+        // 1. Ambil data proker dan berita secara bersamaan
+        const [prokerRes, beritaRes] = await Promise.all([
+            apiFetch('/public/proker'), 
+            apiFetch('/public/berita')
+        ]);
+
+        if (!prokerRes || !beritaRes) {
+             throw new Error("Gagal mengambil data publik.");
+        }
+
+        const allProker = await prokerRes.json();
+        const allBerita = await beritaRes.json();
+
+        // --- 2. Render Program Kerja ---
+        const prokerListEl = document.getElementById('prokerList');
+        if (prokerListEl) {
+            // Ambil 4 proker pertama untuk ditampilkan di homepage
+            const prokerToShow = allProker.slice(0, 4);
+            // 'false' berarti kita bukan admin (tidak ada tombol edit/hapus)
+            prokerListEl.innerHTML = prokerToShow.map(p => 
+                createProkerCard(p, false) 
+            ).join('') || `<p class="tw-col-span-full tw-text-gray-500 tw-text-center">Belum ada program kerja.</p>`;
+        }
+
+        // --- 3. Render Berita ---
+        const beritaListEl = document.getElementById('berita-list');
+        if (beritaListEl) {
+            // Ambil 3 berita pertama untuk ditampilkan di homepage
+            const beritaToShow = allBerita.slice(0, 3);
+             // 'false' berarti kita bukan admin
+            beritaListEl.innerHTML = beritaToShow.map(b => 
+                createBeritaCard(b, false)
+            ).join('') || `<p class="tw-col-span-full tw-text-gray-500 tw-text-center">Belum ada berita.</p>`;
+        }
+
+    } catch (error) {
+        console.error("Gagal memuat data index page:", error);
+        // Tampilkan pesan error di HTML jika gagal
+        const prokerListEl = document.getElementById('prokerList');
+        if (prokerListEl) prokerListEl.innerHTML = `<p class="tw-col-span-full tw-text-red-500 tw-text-center">Gagal memuat program kerja.</p>`;
+        const beritaListEl = document.getElementById('berita-list');
+        if (beritaListEl) beritaListEl.innerHTML = `<p class="tw-col-span-full tw-text-red-500 tw-text-center">Gagal memuat berita.</p>`;
+    }
+}
+// --- AKHIR FUNGSI BARU ---
+
+
 function setupLoginForm() {
     if(isLoggedIn()){ window.location.href = 'dashboard.html'; return; }
     
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
+    const loginForm = document.getElementById('login-form');
+    if (!loginForm) return; // Tambahkan pengecekan
+    
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -183,8 +256,11 @@ async function loadDashboardPage() {
             members = members.filter(m => m.role === 'OSIS');
         }
         
-        document.getElementById('total-anggota').textContent = members.length;
-        document.getElementById('proker-aktif').textContent = allProker.filter(p => p.status === 'Berlangsung').length;
+        const totalAnggotaEl = document.getElementById('total-anggota');
+        if (totalAnggotaEl) totalAnggotaEl.textContent = members.length;
+        
+        const prokerAktifEl = document.getElementById('proker-aktif');
+        if (prokerAktifEl) prokerAktifEl.textContent = allProker.filter(p => p.status === 'Berlangsung').length;
         
         const agendaBodyEl = document.getElementById('agenda-tbody');
         if (agendaBodyEl) {
@@ -208,7 +284,7 @@ async function loadDashboardPage() {
             beritaContainerEl.innerHTML = allBerita.slice(0, 3).map(b => `
                 <article class="tw-bg-white tw-rounded-lg tw-shadow tw-p-4">
                     <img src="${b.gambar[0] || 'https://via.placeholder.com/600x300'}" alt="${b.judul}" class="tw-w-full tw-h-40 tw-object-cover tw-rounded-md">
-                    <h4 class="tw-font-semibold tw-text-blue-800 tw-mt-3">${b.judul}</h4>
+                    <h4 class="tw-font-semibold tw-text-[#1C768F] tw-mt-3">${b.judul}</h4>
                     <p class="tw-text-sm tw-text-gray-600 tw-mt-1">${b.konten.substring(0, 80)}...</p>
                 </article>
             `).join('') || `<p class="tw-col-span-full tw-text-gray-500 tw-text-center">Tidak ada berita.</p>`;
@@ -276,10 +352,20 @@ async function loadProkerPage() {
     if (!res) return;
     const proker = await res.json();
     currentProkerData = proker;
-    document.getElementById('prokerList').innerHTML = proker.map(p => createProkerCard(p, isLoggedIn())).join('') || `<p class="tw-col-span-full tw-text-gray-500 tw-text-center">Tidak ada program kerja.</p>`;
-    if (isLoggedIn()) {
-        document.getElementById('admin-action-container').innerHTML = `<button onclick="openProkerModal()" class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-blue-500">+ Buat Proker Baru</button>`;
-        document.getElementById('modal-container').innerHTML = createModal('proker-modal', 'Form Program Kerja', prokerFormHTML, 'handleProkerForm');
+    
+    const prokerListEl = document.getElementById('prokerList');
+    if (prokerListEl) {
+        prokerListEl.innerHTML = proker.map(p => createProkerCard(p, isLoggedIn())).join('') || `<p class="tw-col-span-full tw-text-gray-500 tw-text-center">Tidak ada program kerja.</p>`;
+    }
+    
+    const adminActionEl = document.getElementById('admin-action-container');
+    if (isLoggedIn() && adminActionEl) {
+        adminActionEl.innerHTML = `<button onclick="openProkerModal()" class="tw-bg-[#1C768F] tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-[#124351]">+ Buat Proker Baru</button>`;
+    }
+    
+    const modalContainerEl = document.getElementById('modal-container');
+    if (isLoggedIn() && modalContainerEl) {
+        modalContainerEl.innerHTML = createModal('proker-modal', 'Form Program Kerja', prokerFormHTML, 'handleProkerForm');
     }
 }
 
@@ -289,13 +375,17 @@ async function loadProkerDetailPage() {
     const res = await apiFetch(`/public/proker/${id}`);
     if (!res) return;
     const proker = await res.json();
-    document.getElementById('detail-content-container').innerHTML = `
-        ${createCarouselHTML(proker.gambar, 'prokerCarousel')}
-        <h2 class="tw-text-2xl tw-font-bold tw-text-blue-800 tw-mt-4">${proker.nama}</h2>
-        <p class="tw-text-sm tw-text-gray-500 tw-mt-1">Tanggal: ${new Date(proker.tanggal_mulai).toLocaleDateString('id-ID', { dateStyle: 'long' })}</p>
-        <div class="tw-mt-4 tw-text-gray-700 tw-leading-relaxed">${proker.deskripsi.replace(/\n/g, '<br>')}</div>`;
-    setupCarousel('prokerCarousel', proker.gambar);
-    setupQnA(id, 'proker', proker.role);
+    
+    const detailContainerEl = document.getElementById('detail-content-container');
+    if (detailContainerEl) {
+        detailContainerEl.innerHTML = `
+            ${createCarouselHTML(proker.gambar, 'prokerCarousel')}
+            <h2 class="tw-text-2xl tw-font-bold tw-text-[#1C768F] tw-mt-4">${proker.nama}</h2>
+            <p class="tw-text-sm tw-text-gray-500 tw-mt-1">Tanggal: ${new Date(proker.tanggal_mulai).toLocaleDateString('id-ID', { dateStyle: 'long' })}</p>
+            <div class="tw-mt-4 tw-text-gray-700 tw-leading-relaxed">${proker.deskripsi.replace(/\n/g, '<br>')}</div>`;
+        setupCarousel('prokerCarousel', proker.gambar);
+        setupQnA(id, 'proker', proker.role);
+    }
 }
 
 async function loadBeritaPage() {
@@ -304,10 +394,20 @@ async function loadBeritaPage() {
     if (!res) return;
     const berita = await res.json();
     currentBeritaData = berita;
-    document.getElementById('berita-list').innerHTML = berita.map(b => createBeritaCard(b, isLoggedIn())).join('') || `<p class="tw-col-span-full tw-text-gray-500 tw-text-center">Tidak ada berita.</p>`;
-    if (isLoggedIn()) {
-        document.getElementById('admin-action-container').innerHTML = `<button onclick="openBeritaModal()" class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-blue-500">+ Tulis Berita</button>`;
-        document.getElementById('modal-container').innerHTML = createModal('berita-modal', 'Form Berita', beritaFormHTML, 'handleBeritaForm');
+    
+    const beritaListEl = document.getElementById('berita-list');
+    if (beritaListEl) {
+        beritaListEl.innerHTML = berita.map(b => createBeritaCard(b, isLoggedIn())).join('') || `<p class="tw-col-span-full tw-text-gray-500 tw-text-center">Tidak ada berita.</p>`;
+    }
+    
+    const adminActionEl = document.getElementById('admin-action-container');
+    if (isLoggedIn() && adminActionEl) {
+        adminActionEl.innerHTML = `<button onclick="openBeritaModal()" class="tw-bg-[#1C768F] tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-[#124351]">+ Tulis Berita</button>`;
+    }
+    
+    const modalContainerEl = document.getElementById('modal-container');
+    if (isLoggedIn() && modalContainerEl) {
+        modalContainerEl.innerHTML = createModal('berita-modal', 'Form Berita', beritaFormHTML, 'handleBeritaForm');
     }
 }
 
@@ -317,13 +417,17 @@ async function loadBeritaDetailPage() {
     const res = await apiFetch(`/public/berita/${id}`);
     if (!res) return;
     const berita = await res.json();
-    document.getElementById('detail-content-container').innerHTML = `
-        ${createCarouselHTML(berita.gambar, 'beritaCarousel')}
-        <h2 class="tw-text-2xl tw-font-bold tw-text-blue-800 tw-mt-4">${berita.judul}</h2>
-        <p class="tw-text-sm tw-text-gray-500 tw-mt-1">Dipublikasikan: ${new Date(berita.tanggal_publikasi).toLocaleDateString('id-ID', { dateStyle: 'long' })}</p>
-        <div class="tw-mt-6 tw-text-gray-700 tw-leading-relaxed">${berita.konten.replace(/\n/g, '<br>')}</div>`;
-    setupCarousel('beritaCarousel', berita.gambar);
-    setupQnA(id, 'berita', berita.role);
+    
+    const detailContainerEl = document.getElementById('detail-content-container');
+    if (detailContainerEl) {
+        detailContainerEl.innerHTML = `
+            ${createCarouselHTML(berita.gambar, 'beritaCarousel')}
+            <h2 class="tw-text-2xl tw-font-bold tw-text-[#1C768F] tw-mt-4">${berita.judul}</h2>
+            <p class="tw-text-sm tw-text-gray-500 tw-mt-1">Dipublikasikan: ${new Date(berita.tanggal_publikasi).toLocaleDateString('id-ID', { dateStyle: 'long' })}</p>
+            <div class="tw-mt-6 tw-text-gray-700 tw-leading-relaxed">${berita.konten.replace(/\n/g, '<br>')}</div>`;
+        setupCarousel('beritaCarousel', berita.gambar);
+        setupQnA(id, 'berita', berita.role);
+    }
 }
 
 async function loadProfilPage() {
@@ -333,36 +437,55 @@ async function loadProfilPage() {
     if (!res) return;
     let members = await res.json();
     currentMembersData = members;
+
     if (!isLoggedIn()) {
         const osisMembers = members.filter(m => m.role === 'OSIS');
         const mpkMembers = members.filter(m => m.role === 'MPK');
-        document.getElementById('leadership-title').textContent = 'Ketua & Wakil Ketua OSIS';
-        document.getElementById('staff-title').textContent = 'Anggota OSIS';
+        
+        const leadershipTitleEl = document.getElementById('leadership-title');
+        if (leadershipTitleEl) leadershipTitleEl.textContent = 'Ketua & Wakil Ketua OSIS';
+        
+        const staffTitleEl = document.getElementById('staff-title');
+        if (staffTitleEl) staffTitleEl.textContent = 'Anggota OSIS';
+        
         renderProfil(osisMembers);
+        
         const main = document.querySelector('main');
-        if (!document.getElementById('leadership-mpk')) {
-            main.innerHTML += `
-                <section class="tw-bg-white tw-rounded-2xl tw-shadow tw-p-8 tw-mb-10 tw-mt-10">
-                    <h2 class="tw-text-2xl tw-font-semibold tw-text-center tw-mb-6">Ketua & Wakil Ketua MPK</h2>
-                    <div id="leadership-mpk" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-6 tw-justify-items-center"></div>
-                </section>
-                <section class="tw-bg-white tw-rounded-2xl tw-shadow tw-p-8">
-                    <h2 class="tw-text-2xl tw-font-semibold tw-mb-6">Anggota MPK</h2>
-                    <div id="staff-mpk" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6 tw-justify-items-center"></div>
-                </section>
+        if (main && !document.getElementById('leadership-mpk')) {
+            const mpkLeadershipSection = document.createElement('section');
+            mpkLeadershipSection.className = 'tw-bg-white tw-rounded-2xl tw-shadow tw-p-8 tw-mb-10 tw-mt-10';
+            mpkLeadershipSection.innerHTML = `
+                <h2 class="tw-text-2xl tw-font-semibold tw-text-center tw-mb-6">Ketua & Wakil Ketua MPK</h2>
+                <div id="leadership-mpk" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-6 tw-justify-items-center"></div>
             `;
+
+            const mpkStaffSection = document.createElement('section');
+            mpkStaffSection.className = 'tw-bg-white tw-rounded-2xl tw-shadow tw-p-8';
+            mpkStaffSection.innerHTML = `
+                <h2 class="tw-text-2xl tw-font-semibold tw-mb-6">Anggota MPK</h2>
+                <div id="staff-mpk" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 tw-gap-6 tw-justify-items-center"></div>
+            `;
+
+            main.appendChild(mpkLeadershipSection);
+            main.appendChild(mpkStaffSection);
         }
+        
         renderProfil(mpkMembers, true);
 
     } else {
         renderProfil(members);
-        document.getElementById('admin-action-container').innerHTML = `<button onclick="openMemberModal()" class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded-lg hover:tw-bg-blue-700">+ Tambah Anggota</button>`;
-        document.getElementById('osisForm').onsubmit = handleMemberForm;
-        document.getElementById('cancel-btn').onclick = () => document.getElementById('formPopup').classList.add('tw-hidden');
+        const adminActionEl = document.getElementById('admin-action-container');
+        if (adminActionEl) {
+            adminActionEl.innerHTML = `<button onclick="openMemberModal()" class="tw-bg-[#1C768F] tw-text-white tw-px-4 tw-py-2 tw-rounded-lg hover:tw-bg-[#124351]">+ Tambah Anggota</button>`;
+        }
+        
+        const osisFormEl = document.getElementById('osisForm');
+        if (osisFormEl) osisFormEl.onsubmit = handleMemberForm;
+        
+        const cancelBtnEl = document.getElementById('cancel-btn');
+        if (cancelBtnEl) cancelBtnEl.onclick = () => document.getElementById('formPopup').classList.add('tw-hidden');
     }
 }
-
-// Di dalam file: public/js/scripts.js
 
 function renderProfil(members, isMpk = false) {
     const leadershipId = isMpk ? 'leadership-mpk' : 'leadership';
@@ -374,14 +497,12 @@ function renderProfil(members, isMpk = false) {
     leadershipEl.innerHTML = '';
     staffEl.innerHTML = '';
     
-    // PERBAIKAN: Logika sorting diubah total untuk hierarki baru
     members.sort((a, b) => {
         const getPeringkat = (jabatan) => {
             const jbtn = jabatan.toLowerCase();
             if (jbtn.includes('ketua osis umum')) return 1;
             if (jbtn.includes('ketua osis 1')) return 2;
             if (jbtn.includes('ketua osis 2')) return 3;
-            // Jabatan pimpinan lain bisa ditambahkan di sini
             if (jbtn.includes('ketua mpk')) return 4;
             if (jbtn.includes('wakil ketua')) return 5;
             return 99; // Peringkat untuk anggota biasa
@@ -390,7 +511,6 @@ function renderProfil(members, isMpk = false) {
         const peringkatA = getPeringkat(a.jabatan);
         const peringkatB = getPeringkat(b.jabatan);
         
-        // Urutkan berdasarkan peringkat, lalu berdasarkan nama jika peringkat sama
         return peringkatA - peringkatB || a.nama.localeCompare(b.nama);
     });
     
@@ -398,7 +518,6 @@ function renderProfil(members, isMpk = false) {
         const card = createMemberCard(member, isLoggedIn());
         const peringkat = member.jabatan.toLowerCase();
 
-        // PERBAIKAN: Kondisi untuk masuk ke bagian pimpinan
         if (peringkat.includes('ketua osis umum') || peringkat.includes('ketua osis 1') || peringkat.includes('ketua osis 2') || peringkat.includes('ketua mpk') || peringkat.includes('wakil')) {
             leadershipEl.innerHTML += card;
         } else {
@@ -418,8 +537,8 @@ function createProkerCard(p, isAdmin) {
     return `
     <article class="tw-bg-white tw-rounded-xl tw-shadow tw-overflow-hidden" data-id="${p.id}">
         <div class="tw-cursor-pointer" onclick="navigateToDetail(event, 'proker-detail.html?id=${p.id}')">
-            <img src="${p.gambar[0] || 'https://via.placeholder.com/800x300'}" class="tw-w-full tw-h-40 tw-object-cover" alt="${p.nama}">
-            <div class="tw-p-4"><h3 class="tw-font-semibold tw-text-lg tw-text-blue-800">${p.nama}</h3></div>
+            <img src="${p.gambar[0] || 'https://via.placeholder.com/800x300'}" class="tw-w-full tw-h-56 tw-object-cover" alt="${p.nama}">
+            <div class="tw-p-4"><h3 class="tw-font-semibold tw-text-lg tw-text-[#1C768F]">${p.nama}</h3></div>
         </div>
         <div class="tw-p-4 tw-pt-0">
             <div class="tw-flex tw-items-center tw-justify-between">
@@ -438,8 +557,8 @@ function createBeritaCard(b, isAdmin) {
     return `
     <article class="tw-bg-white tw-rounded-xl tw-shadow tw-overflow-hidden" data-id="${b.id}">
         <div class="tw-cursor-pointer" onclick="navigateToDetail(event, 'berita-detail.html?id=${b.id}')">
-            <img src="${b.gambar[0] || 'https://via.placeholder.com/900x400'}" class="tw-w-full tw-h-40 tw-object-cover" alt="${b.judul}">
-            <div class="tw-p-4"><h3 class="tw-text-lg tw-font-semibold tw-text-blue-800">${b.judul}</h3></div>
+            <img src="${b.gambar[0] || 'https://via.placeholder.com/900x400'}" class="tw-w-full tw-h-56 tw-object-cover" alt="${b.judul}">
+            <div class="tw-p-4"><h3 class="tw-text-lg tw-font-semibold tw-text-[#1C768F]">${b.judul}</h3></div>
         </div>
         <div class="tw-p-4 tw-pt-0">
             <div class="tw-flex tw-items-center tw-justify-between">
@@ -460,11 +579,44 @@ function createMemberCard(m, isAdmin) {
         <img src="${m.url_foto}" class="tw-w-44 tw-h-44 tw-object-cover tw-rounded-full tw-mx-auto tw-mb-3 tw-shadow">
         <h4 class="tw-font-semibold tw-text-lg">${m.nama}</h4>
         <p class="tw-text-sm tw-text-gray-600">${m.nisn}</p>
-        <p class="tw-text-blue-600 tw-font-medium tw-mb-3">${m.jabatan}</p>
+        <p class="tw-text-[#1C768F] tw-font-medium tw-mb-3">${m.jabatan}</p>
         ${isAdmin ? `
         <div class="tw-flex tw-justify-center tw-gap-2">
             <button onclick="event.stopPropagation(); openMemberModal(${m.id})" class="tw-bg-yellow-400 tw-text-white tw-px-3 tw-py-1 tw-rounded hover:tw-bg-yellow-500">Edit</button>
             <button onclick="event.stopPropagation(); deleteItem('/members', ${m.id}, loadProfilPage)" class="tw-bg-red-500 tw-text-white tw-px-3 tw-py-1 tw-rounded hover:tw-bg-red-600">Hapus</button>
+        </div>` : ''}
+    </div>`;
+}// GANTI FUNGSI LAMA INI DI /js/scripts.js
+// GANTI FUNGSI LAMA DI /js/scripts.js DENGAN YANG INI
+
+// GANTI FUNGSI LAMA DI /js/scripts.js DENGAN YANG INI
+
+function createMemberCard(m, isAdmin) {
+    return `
+    <div class="tw-w-full tw-text-center">
+        <div class="tw-relative tw-mb-4 tw-w-64 tw-mx-auto">
+            <div class="tw-absolute tw-top-2.5 tw-right-2.5 tw-w-full tw-h-64 tw-bg-[#1C768F] tw-rounded-lg"></div>
+            
+            <img src="${m.url_foto}" 
+                 class="tw-relative tw-w-full tw-h-64 tw-object-cover tw-rounded-lg tw-shadow-lg tw-transition-all">
+        </div>
+
+        <div class="tw-px-1">
+            <h4 class="tw-font-bold tw-text-lg tw-text-gray-900">${m.nama}</h4>
+            <p class="tw-text-[#1C768F] tw-text-sm">${m.jabatan}</p>
+            
+            <div class="tw-mt-3 tw-pt-3 tw-border-t tw-border-gray-200">
+                <p class="tw-text-xs tw-text-gray-500">NISN</p>
+                <p class="tw-text-sm tw-text-gray-800">${m.nisn}</p>
+            </div>
+        </div>
+        
+        ${isAdmin ? `
+        <div class="tw-flex tw-justify-center tw-gap-2 tw-mt-4">
+            <button onclick="event.stopPropagation(); openMemberModal(${m.id})" 
+                    class="tw-text-xs tw-bg-yellow-400 tw-text-white tw-px-3 tw-py-1 tw-rounded hover:tw-bg-yellow-500">Edit</button>
+            <button onclick="event.stopPropagation(); deleteItem('/members', ${m.id}, loadProfilPage)" 
+                    class="tw-text-xs tw-bg-red-500 tw-text-white tw-px-3 tw-py-1 tw-rounded hover:tw-bg-red-600">Hapus</button>
         </div>` : ''}
     </div>`;
 }
@@ -501,9 +653,14 @@ function setupCarousel(id, images) {
 // ===================================
 
 async function setupQnA(itemId, itemType, itemRole) {
-    document.getElementById('qna-item-id').value = itemId;
+    const qnaItemIdEl = document.getElementById('qna-item-id');
+    if (!qnaItemIdEl) return; // Keluar jika elemen tidak ada
+    
+    qnaItemIdEl.value = itemId;
     document.getElementById('qna-role').value = itemRole;
+    
     loadQnaList(itemId, itemType);
+    
     document.getElementById('qna-form').addEventListener('submit', (e) => {
         e.preventDefault();
         const form = e.target;
@@ -527,8 +684,10 @@ async function setupQnA(itemId, itemType, itemRole) {
             }
         });
     });
+    
     if(isLoggedIn()){
-        document.getElementById('qna-admin-container').classList.remove('tw-hidden');
+        const qnaAdminContainerEl = document.getElementById('qna-admin-container');
+        if (qnaAdminContainerEl) qnaAdminContainerEl.classList.remove('tw-hidden');
         loadAdminQnaToAnswer(itemId, itemType);
     }
 }
@@ -537,11 +696,15 @@ async function loadQnaList(itemId, itemType) {
     const res = await apiFetch(`/public/qna/${itemType}/${itemId}`);
     if (!res) return;
     const qnas = await res.json();
-    document.getElementById('qna-list').innerHTML = qnas.length === 0 ? '<p>Belum ada pertanyaan.</p>' : qnas.map(q => `
-        <div class="tw-border-b tw-pb-4">
-            <p class="tw-font-semibold">${q.nama_penanya}: <span class="tw-font-normal">${q.pertanyaan}</span></p>
-            ${q.jawaban ? `<p class="tw-mt-2 tw-pl-4 tw-border-l-2 tw-border-blue-500 tw-text-gray-700"><b>Jawaban:</b> ${q.jawaban}</p>` : '<p class="tw-text-sm tw-text-gray-500 tw-mt-2"><i>Belum dijawab.</i></p>'}
-        </div>`).join('');
+    
+    const qnaListEl = document.getElementById('qna-list');
+    if (qnaListEl) {
+        qnaListEl.innerHTML = qnas.length === 0 ? '<p>Belum ada pertanyaan.</p>' : qnas.map(q => `
+            <div class="tw-border-b tw-pb-4">
+                <p class="tw-font-semibold">${q.nama_penanya}: <span class="tw-font-normal">${q.pertanyaan}</span></p>
+                ${q.jawaban ? `<p class="tw-mt-2 tw-pl-4 tw-border-l-2 tw-border-[#124351] tw-text-gray-700"><b>Jawaban:</b> ${q.jawaban}</p>` : '<p class="tw-text-sm tw-text-gray-500 tw-mt-2"><i>Belum dijawab.</i></p>'}
+            </div>`).join('');
+    }
 }
 
 async function loadAdminQnaToAnswer(itemId, itemType) {
@@ -549,14 +712,18 @@ async function loadAdminQnaToAnswer(itemId, itemType) {
     if (!res) return;
     const allUnanswered = await res.json();
     const relevantUnanswered = allUnanswered.filter(q => q.item_id == itemId && q.item_type === itemType);
-    document.getElementById('qna-admin-list').innerHTML = relevantUnanswered.length === 0 ? '<p>Tidak ada pertanyaan baru untuk dijawab pada item ini.</p>' : relevantUnanswered.map(q => `
-        <div class="tw-border tw-p-3 tw-rounded-md">
-            <p><strong>${q.nama_penanya}</strong>: ${q.pertanyaan}</p>
-            <form class="tw-mt-2" onsubmit="handleAnswerSubmit(event, ${q.id})">
-                <textarea required class="tw-w-full tw-border tw-p-2 tw-rounded" rows="2" placeholder="Tulis jawaban..."></textarea>
-                <button type="submit" class="tw-bg-green-600 tw-text-white tw-px-3 tw-py-1 tw-rounded tw-mt-1">Jawab</button>
-            </form>
-        </div>`).join('');
+    
+    const qnaAdminListEl = document.getElementById('qna-admin-list');
+    if (qnaAdminListEl) {
+        qnaAdminListEl.innerHTML = relevantUnanswered.length === 0 ? '<p>Tidak ada pertanyaan baru untuk dijawab pada item ini.</p>' : relevantUnanswered.map(q => `
+            <div class="tw-border tw-p-3 tw-rounded-md">
+                <p><strong>${q.nama_penanya}</strong>: ${q.pertanyaan}</p>
+                <form class="tw-mt-2" onsubmit="handleAnswerSubmit(event, ${q.id})">
+                    <textarea required class="tw-w-full tw-border tw-p-2 tw-rounded" rows="2" placeholder="Tulis jawaban..."></textarea>
+                    <button type="submit" class="tw-bg-green-600 tw-text-white tw-px-3 tw-py-1 tw-rounded tw-mt-1">Jawab</button>
+                </form>
+            </div>`).join('');
+    }
 }
 
 
@@ -578,7 +745,7 @@ const prokerFormHTML = `
         <select name="status" class="tw-border tw-rounded-md tw-px-3 tw-py-2"><option>Direncanakan</option><option>Berlangsung</option><option>Selesai</option></select>
         <div class="md:tw-col-span-2"><label class="tw-text-sm">Gambar (bisa lebih dari satu & maks. 10mb)</label><input name="gambar" type="file" multiple class="tw-w-full tw-border tw-p-2"></div>
     </div>
-    <div class="tw-flex tw-gap-2 tw-mt-4"><button type="submit" class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded-md">Simpan</button><button type="button" onclick="closeModal('proker-modal')" class="tw-border tw-rounded-md tw-px-4 tw-py-2">Batal</button></div>`;
+    <div class="tw-flex tw-gap-2 tw-mt-4"><button type="submit" class="tw-bg-[#1C768F] tw-text-white tw-px-4 tw-py-2 tw-rounded-md">Simpan</button><button type="button" onclick="closeModal('proker-modal')" class="tw-border tw-rounded-md tw-px-4 tw-py-2">Batal</button></div>`;
 const beritaFormHTML = `
     <input type="hidden" name="beritaId">
     <div class="tw-space-y-4">
@@ -586,12 +753,15 @@ const beritaFormHTML = `
         <textarea name="konten" required class="tw-w-full tw-h-40 tw-border tw-rounded-md tw-px-3 tw-py-2" placeholder="Isi berita..."></textarea>
         <div><label class="tw-text-sm">Gambar (bisa lebih dari satu & maks. 10mb)</label><input name="gambar" type="file" multiple class="tw-w-full tw-border tw-p-2"></div>
     </div>
-    <div class="tw-flex tw-gap-2 tw-mt-4"><button type="submit" class="tw-bg-blue-600 tw-text-white tw-px-4 tw-py-2 tw-rounded-md">Simpan</button><button type="button" onclick="closeModal('berita-modal')" class="tw-border tw-rounded-md tw-px-4 tw-py-2">Batal</button></div>`;
+    <div class="tw-flex tw-gap-2 tw-mt-4"><button type="submit" class="tw-bg-[#1C768F] tw-text-white tw-px-4 tw-py-2 tw-rounded-md">Simpan</button><button type="button" onclick="closeModal('berita-modal')" class="tw-border tw-rounded-md tw-px-4 tw-py-2">Batal</button></div>`;
 
 window.createModal = (id, title, formHTML, handlerName) => `
     <div id="${id}" class="tw-hidden tw-fixed tw-inset-0 tw-bg-black/40 tw-flex tw-items-center tw-justify-center z-50">
         <div class="tw-bg-white tw-rounded-lg tw-w-11/12 md:tw-w-2/3 lg:tw-w-1/2 tw-p-6"><div class="tw-flex tw-items-center tw-justify-between"><h4 class="tw-font-semibold tw-text-lg">${title}</h4><button onclick="closeModal('${id}')" class="tw-text-gray-500">✕</button></div><form onsubmit="${handlerName}(event)" class="tw-mt-4">${formHTML}</form></div></div>`;
-window.closeModal = (id) => document.getElementById(id).classList.add('tw-hidden');
+window.closeModal = (id) => {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('tw-hidden');
+};
 
 window.openProkerModal = (id = null) => {
     const modal = document.getElementById('proker-modal'); if(!modal) return;
@@ -733,4 +903,4 @@ function showLoading(title) {
 }
 function hideLoading() {
     Swal.close();
-}   
+}
