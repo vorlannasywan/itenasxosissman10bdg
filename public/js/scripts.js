@@ -652,45 +652,75 @@ function setupCarousel(id, images) {
 // QNA LOGIC
 // ===================================
 
+// GANTI FUNGSI LAMA DI /js/scripts.js DENGAN YANG INI
+
 async function setupQnA(itemId, itemType, itemRole) {
     const qnaItemIdEl = document.getElementById('qna-item-id');
-    if (!qnaItemIdEl) return; // Keluar jika elemen tidak ada
+    if (!qnaItemIdEl) return; // Keluar jika elemen QnA tidak ada
     
     qnaItemIdEl.value = itemId;
     document.getElementById('qna-role').value = itemRole;
     
+    // Selalu muat daftar Q&A publik
     loadQnaList(itemId, itemType);
     
-    document.getElementById('qna-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const form = e.target;
-        const nama = form.nama_penanya.value;
-        const pertanyaan = form.pertanyaan.value;
-        if (!nama || !pertanyaan) { Swal.fire('Input Kosong', 'Nama dan Pertanyaan tidak boleh kosong.', 'warning'); return; }
-        Swal.fire({
-            title: 'Konfirmasi Pertanyaan', text: "Apakah Anda yakin ingin mengirim pertanyaan ini?", icon: 'question',
-            showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, Kirim!', cancelButtonText: 'Batal'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                const data = { item_id: itemId, item_type: itemType, role: itemRole, nama_penanya: nama, pertanyaan: pertanyaan };
-                const res = await apiFetch('/public/qna', { method: 'POST', body: JSON.stringify(data) });
-                if (res && res.ok) {
-                    Swal.fire('Terkirim!', 'Pertanyaan Anda telah berhasil dikirim.', 'success');
-                    form.reset(); loadQnaList(itemId, itemType);
-                } else {
-                    Swal.fire('Gagal', 'Terjadi kesalahan saat mengirim pertanyaan.', 'error');
-                }
-            }
-        });
-    });
-    
+    const publicForm = document.getElementById('qna-form');
+    const adminContainer = document.getElementById('qna-admin-container');
+    const adminList = document.getElementById('qna-admin-list');
+
     if(isLoggedIn()){
-        const qnaAdminContainerEl = document.getElementById('qna-admin-container');
-        if (qnaAdminContainerEl) qnaAdminContainerEl.classList.remove('tw-hidden');
-        loadAdminQnaToAnswer(itemId, itemType);
+        // === Tampilan ADMIN ===
+        if (publicForm) publicForm.classList.add('tw-hidden'); // Sembunyikan form publik
+        if (adminContainer) adminContainer.classList.remove('tw-hidden');
+        
+        loadAdminQnaToAnswer(itemId, itemType); // Muat pertanyaan untuk admin
+
+        // Pasang event listener untuk tombol "Balas"
+        if (adminList && !adminList.dataset.listenerAttached) {
+            adminList.addEventListener('click', (e) => {
+                // Cari tombol "Balas" yang diklik
+                if (e.target.dataset.action === 'toggle-reply') {
+                    const form = e.target.nextElementSibling; // Dapatkan form yg tersembunyi
+                    if (form && form.tagName === 'FORM') {
+                        form.classList.toggle('tw-hidden'); // Tampilkan/sembunyikan form
+                    }
+                }
+            });
+            adminList.dataset.listenerAttached = 'true'; // Mencegah listener ganda
+        }
+
+    } else {
+        // === Tampilan PENGGUNA PUBLIK ===
+        if (publicForm && !publicForm.dataset.listenerAttached) {
+            publicForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const nama = form.nama_penanya.value;
+                const pertanyaan = form.pertanyaan.value;
+                if (!nama || !pertanyaan) { Swal.fire('Input Kosong', 'Nama dan Pertanyaan tidak boleh kosong.', 'warning'); return; }
+                Swal.fire({
+                    title: 'Konfirmasi Pertanyaan', text: "Apakah Anda yakin ingin mengirim pertanyaan ini?", icon: 'question',
+                    showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Kirim!', cancelButtonText: 'Batal'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        const data = { item_id: itemId, item_type: itemType, role: itemRole, nama_penanya: nama, pertanyaan: pertanyaan };
+                        const res = await apiFetch('/public/qna', { method: 'POST', body: JSON.stringify(data) });
+                        if (res && res.ok) {
+                            Swal.fire('Terkirim!', 'Pertanyaan Anda telah berhasil dikirim.', 'success');
+                            form.reset(); loadQnaList(itemId, itemType);
+                        } else {
+                            Swal.fire('Gagal', 'Terjadi kesalahan saat mengirim pertanyaan.', 'error');
+                        }
+                    }
+                });
+            });
+            publicForm.dataset.listenerAttached = 'true';
+        }
     }
 }
+
+// --- GANTI FUNGSI LAMA ANDA DENGAN YANG INI ---
 
 async function loadQnaList(itemId, itemType) {
     const res = await apiFetch(`/public/qna/${itemType}/${itemId}`);
@@ -699,13 +729,58 @@ async function loadQnaList(itemId, itemType) {
     
     const qnaListEl = document.getElementById('qna-list');
     if (qnaListEl) {
-        qnaListEl.innerHTML = qnas.length === 0 ? '<p>Belum ada pertanyaan.</p>' : qnas.map(q => `
-            <div class="tw-border-b tw-pb-4">
-                <p class="tw-font-semibold">${q.nama_penanya}: <span class="tw-font-normal">${q.pertanyaan}</span></p>
-                ${q.jawaban ? `<p class="tw-mt-2 tw-pl-4 tw-border-l-2 tw-border-[#124351] tw-text-gray-700"><b>Jawaban:</b> ${q.jawaban}</p>` : '<p class="tw-text-sm tw-text-gray-500 tw-mt-2"><i>Belum dijawab.</i></p>'}
-            </div>`).join('');
+        qnaListEl.innerHTML = qnas.length === 0 ? '<p>Belum ada pertanyaan.</p>' : qnas.map(q => {
+            
+            // Memanggil helper. Kita asumsikan server menyimpan 'created_at'
+            const questionDate = formatQnaDate(q.created_at); 
+
+            return `
+            <div class="tw-flex tw-gap-3 tw-border-b tw-pb-4">
+                <div class="tw-flex-shrink-0">
+                    <svg class="tw-w-10 tw-h-10 tw-rounded-full tw-bg-gray-200 tw-text-gray-500 tw-p-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                
+                <div class="tw-flex-1">
+                    <p class="tw-font-semibold tw-text-gray-900">${q.nama_penanya}</p>
+                    <p class="tw-text-gray-700 tw-mt-1">${q.pertanyaan}</p>
+                    
+                    <div class="tw-flex tw-items-center tw-gap-3 tw-mt-2">
+                        ${questionDate ? `<p class="tw-text-xs tw-text-gray-400">${questionDate}</p>` : ''}
+                        ${!q.jawaban ? `<p class="tw-text-xs tw-text-gray-500"><i>Belum dijawab.</i></p>` : ''}
+                    </div>
+                    
+                    ${q.jawaban ? `
+                        <div class="tw-mt-4 tw-p-3 tw-bg-gray-50 tw-rounded-md tw-border tw-border-gray-200">
+                            <p class="tw-font-semibold tw-text-sm tw-text-gray-800">Jawaban Admin:</p>
+                            <p class="tw-text-gray-700 tw-text-sm tw-mt-1">${q.jawaban}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>`;
+        }).join('');
     }
 }
+
+// --- TAMBAHKAN FUNGSI BARU INI ---
+// Helper untuk memformat tanggal Q&A
+function formatQnaDate(dateString) {
+    if (!dateString) return ''; // Jangan tampilkan 'Invalid Date'
+    try {
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            day: '2-digit', 
+            month: 'long', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        return ''; // Handle jika format tanggal salah
+    }
+}
+
+// GANTI FUNGSI LAMA DI /js/scripts.js DENGAN YANG INI
 
 async function loadAdminQnaToAnswer(itemId, itemType) {
     const res = await apiFetch(`/qna/unanswered`);
@@ -718,7 +793,12 @@ async function loadAdminQnaToAnswer(itemId, itemType) {
         qnaAdminListEl.innerHTML = relevantUnanswered.length === 0 ? '<p>Tidak ada pertanyaan baru untuk dijawab pada item ini.</p>' : relevantUnanswered.map(q => `
             <div class="tw-border tw-p-3 tw-rounded-md">
                 <p><strong>${q.nama_penanya}</strong>: ${q.pertanyaan}</p>
-                <form class="tw-mt-2" onsubmit="handleAnswerSubmit(event, ${q.id})">
+                
+                <button data-action="toggle-reply" data-id="${q.id}" class="tw-text-sm tw-font-medium tw-text-blue-600 hover:tw-underline tw-mt-1">
+                    Balas
+                </button>
+                
+                <form class="tw-mt-2 tw-hidden" onsubmit="handleAnswerSubmit(event, ${q.id})">
                     <textarea required class="tw-w-full tw-border tw-p-2 tw-rounded" rows="2" placeholder="Tulis jawaban..."></textarea>
                     <button type="submit" class="tw-bg-green-600 tw-text-white tw-px-3 tw-py-1 tw-rounded tw-mt-1">Jawab</button>
                 </form>
