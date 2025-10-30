@@ -60,7 +60,7 @@
         <div class="tw-flex tw-items-center tw-gap-4">
           <button id="menu-toggle" class="md:tw-hidden tw-text-[#1C768F] tw-text-3xl">&#9776;</button>
           <h2 class="tw-text-2xl tw-font-bold tw-text-[#1C768F]">Detail Program Kerja</h2>
-          </div>
+        </div>
       </header>
 
       <article id="detail-content-container" class="tw-bg-white tw-rounded-xl tw-shadow-lg tw-p-6 md:tw-p-8 tw-w-full">
@@ -92,30 +92,22 @@
         </div>
       </section>
 
+      <div id="modal-container"></div>
+
     </main>
   </div>
 
   <script>
+    // ... (SCRIPT SIDEBAR ANDA TETAP SAMA) ...
     const sidebar = document.getElementById("sidebar-container");
     const menuBtn = document.getElementById("menu-toggle");
     const closeBtn = document.getElementById("close-sidebar");
     const overlay = document.getElementById("overlay");
-
-    function openSidebar() {
-      sidebar.classList.remove("hidden-mobile");
-      overlay.classList.remove("tw-hidden");
-    }
-
-    function closeSidebar() {
-      sidebar.classList.add("hidden-mobile");
-      overlay.classList.add("tw-hidden");
-    }
-
-    // Pengecekan null untuk keamanan jika elemen tidak ada
+    function openSidebar() { sidebar.classList.remove("hidden-mobile"); overlay.classList.remove("tw-hidden"); }
+    function closeSidebar() { sidebar.classList.add("hidden-mobile"); overlay.classList.add("tw-hidden"); }
     menuBtn?.addEventListener("click", openSidebar);
     closeBtn?.addEventListener("click", closeSidebar);
     overlay?.addEventListener("click", closeSidebar);
-
     window.addEventListener("resize", () => {
       if (window.innerWidth >= 768) {
         overlay.classList.add("tw-hidden");

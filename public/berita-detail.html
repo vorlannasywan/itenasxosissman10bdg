@@ -5,29 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>OSIS Panel — Detail Berita</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { prefix: 'tw-' }</script>
 
-  <!-- Library -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Style -->
   <style>
     body { font-family: 'Inter', system-ui; }
-
-    /* Transisi sidebar */
     #sidebar-container {
       transition: transform 0.3s ease-in-out;
     }
-
     .hidden-mobile {
       transform: translateX(-100%);
     }
-
-    /* Overlay hitam di belakang sidebar (mobile) */
     #overlay {
       background-color: rgba(0, 0, 0, 0.5);
       transition: opacity 0.3s ease;
@@ -38,117 +30,66 @@
 <body class="tw-bg-gray-100 tw-h-screen">
   <div class="tw-flex tw-h-screen tw-overflow-hidden">
 
-    <!-- OVERLAY (muncul di mobile) -->
     <div id="overlay" class="tw-fixed tw-inset-0 tw-z-40 tw-hidden"></div>
 
-    <!-- SIDEBAR -->
     <aside id="sidebar-container"
       class="tw-fixed md:tw-static tw-z-50 tw-top-0 tw-left-0 tw-h-full tw-w-64 tw-bg-[#1C768F] tw-text-white tw-flex tw-flex-col hidden-mobile md:tw-transform-none">
-
-      <!-- Header Sidebar (Mobile Only) -->
-      <div class="tw-flex tw-items-center tw-justify-between tw-p-4 md:tw-hidden tw-border-b tw-border-white/20">
-        <h2 class="tw-text-lg tw-font-semibold">Menu</h2>
-        <button id="close-sidebar" class="tw-text-white tw-text-3xl tw-leading-none">&times;</button>
-      </div>
-
-      <!-- Menu konten (bisa di-load via JS) -->
-      <div class="tw-p-6 tw-text-center">Memuat menu...</div>
+        <div class="tw-p-6 tw-text-center">Memuat menu...</div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="tw-flex-1 tw-flex tw-flex-col tw-overflow-y-auto tw-p-6 md:tw-p-8 tw-w-full">
       
-      <!-- HEADER -->
       <header class="tw-flex tw-items-center tw-justify-between tw-mb-6">
         <div class="tw-flex tw-items-center tw-gap-4">
-          <!-- Tombol hamburger (mobile only) -->
           <button id="menu-toggle" class="md:tw-hidden tw-text-[#1C768F] tw-text-3xl">&#9776;</button>
           <h2 class="tw-text-2xl tw-font-bold tw-text-[#1C768F]">Detail Berita</h2>
         </div>
       </header>
 
-      <!-- KONTEN DETAIL BERITA -->
-      <section>
+      <article id="detail-content-container" class="tw-bg-white tw-rounded-xl tw-shadow-lg tw-p-6 md:tw-p-8 tw-w-full">
+         <p class="tw-text-center tw-text-gray-500">Memuat detail berita...</p>
+         </article>
 
-        <!-- Detail berita -->
-        <article class="tw-bg-white tw-rounded-xl tw-shadow tw-p-6 tw-mt-4">
-          <div id="detail-content-container">
-            <p class="tw-text-gray-500 tw-text-center">Memuat detail...</p>
+      <section id="qna-section" class="tw-bg-white tw-rounded-xl tw-shadow-lg tw-p-6 md:tw-p-8 tw-w-full tw-mt-8">
+        <h3 class="tw-text-xl tw-font-semibold tw-mb-4">Tanya Jawab</h3>
+
+        <form id="qna-form" class="tw-mb-6 tw-space-y-3">
+          <input type="hidden" id="qna-item-id">
+          <input type="hidden" id="qna-role">
+          <input type="hidden" id="qna-item-type" value="berita"> 
+          <input type="text" name="nama_penanya" placeholder="Nama Anda" required class="tw-w-full tw-border tw-p-2 tw-rounded-md">
+          <textarea name="pertanyaan" placeholder="Tulis pertanyaan Anda..." required rows="3" class="tw-w-full tw-border tw-p-2 tw-rounded-md"></textarea>
+          <button type="submit" class="tw-bg-[#1C768F] tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-[#124351]">Kirim Pertanyaan</button>
+        </form>
+
+        <div id="qna-list" class="tw-space-y-4 tw-mb-6">
+          <p class="tw-text-gray-500">Memuat tanya jawab...</p>
+        </div>
+
+        <div id="qna-admin-container" class="tw-hidden tw-border-t tw-pt-4">
+          <h4 class="tw-font-semibold tw-text-lg tw-text-green-700">Balas Pertanyaan (Admin)</h4>
+          <div id="qna-admin-list" class="tw-mt-4 tw-space-y-4">
+            <p>Tidak ada pertanyaan baru.</p>
           </div>
-        </article>
-
-        <!-- Tanya jawab -->
-        <section class="tw-bg-white tw-rounded-xl tw-shadow tw-p-6 tw-mt-8">
-          <h3 class="tw-font-semibold tw-text-lg tw-mb-4">Tanya Jawab</h3>
-
-          <div id="qna-list" class="tw-space-y-6">
-            <p class="tw-text-gray-500">Memuat tanya jawab...</p>
-          </div>
-
-          <div id="qna-form-container" class="tw-mt-6">
-            <h4 class="tw-font-semibold tw-text-md tw-mb-3">Punya Pertanyaan?</h4>
-            <form id="qna-form">
-              <input type="hidden" id="qna-item-id">
-              <input type="hidden" id="qna-item-type" value="berita">
-              <input type="hidden" id="qna-role">
-
-              <div class="tw-mb-3">
-                <label class="tw-block tw-text-sm">Nama</label>
-                <input type="text" id="nama_penanya" required
-                  class="tw-w-full tw-border tw-rounded-md tw-p-2 tw-mt-1">
-              </div>
-
-              <div class="tw-mb-3">
-                <label class="tw-block tw-text-sm">Pertanyaan</label>
-                <textarea id="pertanyaan" required
-                  class="tw-w-full tw-border tw-rounded-md tw-p-2 tw-mt-1"
-                  rows="3"></textarea>
-              </div>
-
-              <button type="submit"
-                class="tw-bg-[#1C768F] tw-text-white tw-px-4 tw-py-2 tw-rounded-md hover:tw-bg-[#155B70]">
-                Kirim
-              </button>
-
-              <p id="qna-message" class="tw-text-green-600 tw-mt-2"></p>
-            </form>
-          </div>
-
-          <div id="qna-admin-container" class="tw-hidden tw-mt-6">
-            <h4 class="tw-font-semibold tw-text-md tw-mb-3">Jawab Pertanyaan</h4>
-            <div id="qna-admin-list" class="tw-space-y-4"></div>
-          </div>
-        </section>
+        </div>
       </section>
-    </main>
+
+      </main>
   </div>
 
   <div id="modal-container"></div>
 
-  <!-- SCRIPT SIDEBAR -->
   <script>
+    // ... (SCRIPT SIDEBAR ANDA TETAP SAMA) ...
     const sidebar = document.getElementById("sidebar-container");
     const menuBtn = document.getElementById("menu-toggle");
     const closeBtn = document.getElementById("close-sidebar");
     const overlay = document.getElementById("overlay");
-
-    // Fungsi buka sidebar (mobile)
-    function openSidebar() {
-      sidebar.classList.remove("hidden-mobile");
-      overlay.classList.remove("tw-hidden");
-    }
-
-    // Fungsi tutup sidebar (mobile)
-    function closeSidebar() {
-      sidebar.classList.add("hidden-mobile");
-      overlay.classList.add("tw-hidden");
-    }
-
+    function openSidebar() { sidebar.classList.remove("hidden-mobile"); overlay.classList.remove("tw-hidden"); }
+    function closeSidebar() { sidebar.classList.add("hidden-mobile"); overlay.classList.add("tw-hidden"); }
     menuBtn?.addEventListener("click", openSidebar);
     closeBtn?.addEventListener("click", closeSidebar);
     overlay?.addEventListener("click", closeSidebar);
-
-    // Reset saat resize
     window.addEventListener("resize", () => {
       if (window.innerWidth >= 768) {
         overlay.classList.add("tw-hidden");
