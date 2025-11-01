@@ -590,9 +590,6 @@ async function loadBeritaPage() {
     }
 }
 
-/**
- * Memuat detail satu berita.
- */
 async function loadBeritaDetailPage() {
     const id = new URLSearchParams(window.location.search).get('id');
     if (!id) {
@@ -603,37 +600,51 @@ async function loadBeritaDetailPage() {
     const res = await apiFetch(`/public/berita/${id}`);
     if (!res || !res.ok) {
         const detailContainer = document.getElementById('detail-content-container');
-        if (detailContainer) detailContainer.innerHTML = '<p class="tw-text-red-500 tw-text-center">Gagal memuat detail berita.</p>';
+        if (detailContainer)
+            detailContainer.innerHTML = '<p class="tw-text-red-500 tw-text-center">Gagal memuat detail berita.</p>';
         return;
     }
 
     const berita = await res.json();
 
+    // Aman untuk tanggal kosong atau invalid
+    let formattedDate = 'Tanggal tidak valid';
+    try {
+        const tanggal = new Date(berita.tanggal_publikasi);
+        if (!isNaN(tanggal)) {
+            formattedDate = tanggal.toLocaleString('id-ID', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    } catch (_) {}
+
     const detailContainer = document.getElementById('detail-content-container');
     if (detailContainer) {
-        // Gunakan fungsi galeri baru
         detailContainer.innerHTML = `
             ${createPhotoGalleryHTML(berita.gambar)} 
             <h2 class="tw-text-2xl md:tw-text-3xl tw-font-bold tw-text-[#1C768F] tw-mt-6">${berita.judul}</h2>
             <p class="tw-text-sm tw-text-gray-500 tw-mt-1">
-                Dipublikasikan: ${new Date(berita.tanggal_publikasi).toLocaleDateString('id-ID', { dateStyle: 'long', hour: '2-digit', minute: '2-digit' })}
+                Dipublikasikan: ${formattedDate}
             </p>
             <div class="tw-mt-6 tw-text-gray-700 tw-leading-relaxed prose max-w-none">
                 ${berita.konten.replace(/\n/g, '<br>')}
             </div>
         `;
     }
-    
+
     // Siapkan bagian Tanya Jawab
-    setupQnA(id, 'berita', berita.role); 
-    
+    setupQnA(id, 'berita', berita.role);
+
     // Suntikkan modal galeri jika belum ada
     const modalContainer = document.getElementById('modal-container');
     if (modalContainer && !document.getElementById('gallery-modal')) {
         modalContainer.innerHTML += createGalleryModalHTML();
     }
 }
-
 /**
  * Memuat daftar anggota OSIS/MPK untuk halaman profil.
  */
@@ -660,7 +671,7 @@ async function loadProfilPage() {
         
         // Update judul section OSIS
         const leadershipTitleEl = document.getElementById('leadership-title');
-        if (leadershipTitleEl) leadershipTitleEl.textContent = 'Ketua & Wakil Ketua OSIS';
+        if (leadershipTitleEl) leadershipTitleEl.textContent = 'Ketua OSIS';
         const staffTitleEl = document.getElementById('staff-title');
         if (staffTitleEl) staffTitleEl.textContent = 'Anggota OSIS';
         

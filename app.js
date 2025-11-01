@@ -10,7 +10,7 @@ const sequelize = require('./config/database');
 const app = express();
 
 // Mengatur Middleware
-app.use(cors()); // Mengizinkan Cross-Origin Resource Sharing
+app.use(cors({ origin: '*' })); // Mengizinkan Cross-Origin Resource Sharing
 app.use(express.json()); // Mem-parsing body request JSON
 app.use(express.urlencoded({ extended: true })); // Mem-parsing body request URL-encoded
 app.use(express.static(path.join(__dirname, 'public'))); // Menyajikan file frontend statis dari folder 'public'
